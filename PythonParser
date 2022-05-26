@@ -1,0 +1,71 @@
+import os 
+import openpyxl
+import pandas as pd
+import pyodbc
+import datetime
+
+# You need to install openpyxl, pandas as pd, pyodbc use pip for this in cmd.
+
+# Set the core path to the spreadsheets to enter into the DB, I believe I can leave it at sheets and go through all months but I haven't tested.
+
+path=r"C:\Users\llippincott\Desktop\Local Detail Sheets\Quarter 1\JANUARY"
+os.chdir(path)
+
+# Using os.listdir(path) lets us loop through the files
+for filename in os.listdir(path):
+    if filename.endswith(".xlsx"):
+        print(os.path.join(path, filename))
+# this print just shows the path and filename for testing purposes.
+        myworkbook=openpyxl.load_workbook(filename)
+        worksheet= myworkbook['INPUTS']
+# Sets a variable to whatever file is open and sets the sheet page to inputs.
+        SalesO = worksheet['T5']
+        SiteNum = worksheet['F5']
+        SiteN = worksheet['F4']
+        Cust = worksheet ['F3']
+        ShipD = worksheet['T3']
+        print (SalesO.value)
+        print (SiteNum.value)
+        print (SiteN.value)
+        print (Cust.value)
+        print (ShipD.value)
+# Grab the cell values and set them into variables, print the variable values for testing purposes and to see where the program is.
+        params = (SalesO.value, SiteNum.value, SiteN.value, Cust.value, ShipD.value)
+# Set a param variable equal to all the variables, this essentially allows sql to seperate them
+        params = [float(x) if type(x) is int else x for x in params] #Convert all int items to floats
+# Converts ints to floats, not sure why this was needed but it fixed an issue.
+        conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=C:\Users\llippincott\Desktop\MS DB_be.accdb;')
+        cursor = conn.cursor()
+        cursor.execute('select * from MSDB')
+        cursor.execute("INSERT INTO MSDB (SalesOrder, SiteNumber, SiteName, Customer, ShipDate) VALUES (?,?,?,?,?)", (params))
+        conn.commit()
+# Connects to the database, and the table MSDB in the database, the ?'s are placeholders for variables since you cant send them straight over.
+    else:
+        continue
+        
+        
+
+
+
+
+
+
+
+
+$con = New-Object -TypeName System.Data.SQLite.SQLiteConnection
+$con.ConnectionString = "Data Source=C:\Users\llippincott\Desktop\MSDB.DB"
+$con.Open()
+
+
+
+Sets connect, sets data source, opens connection. Selects * aka new line from table name.
+
+
+$con = New-Object -TypeName System.Data.SQLite.SQLiteConnection
+$con.ConnectionString = "Data Source=C:\database\test.db"
+$con.Open()
+$sql = $con.CreateCommand()
+$sql.CommandText = "SELECT * FROM MSDB"
+$adapter = New-Object -TypeName System.Data.SQLite.SQLiteDataAdapter $sql
+$data = New-Object System.Data.DataSet
+[void]$adapter.Fill($data)
